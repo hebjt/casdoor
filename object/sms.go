@@ -59,6 +59,7 @@ func SendSms(provider *Provider, content string, phoneNumbers ...string) error {
 		params["0"] = content
 	} else {
 		params["code"] = content
+		params["product"] = "云平台后台"
 	}
 
 	err = client.SendMessage(params, phoneNumbers...)

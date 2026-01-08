@@ -2,7 +2,7 @@ const fs = require("fs");
 const path = require("path");
 
 const sourceDir = path.join(__dirname, "build-temp");
-const targetDir = path.join(__dirname, "build");
+const targetDir = path.join(__dirname, "buid");
 
 if (!fs.existsSync(sourceDir)) {
   // eslint-disable-next-line no-console

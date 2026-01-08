@@ -17,6 +17,7 @@ package cred
 import (
 	"crypto/md5"
 	"encoding/hex"
+	"fmt"
 )
 
 type Md5UserSaltCredManager struct{}
@@ -38,20 +39,19 @@ func NewMd5UserSaltCredManager() *Md5UserSaltCredManager {
 }
 
 func (cm *Md5UserSaltCredManager) GetHashedPassword(password string, salt string) string {
+	fmt.Printf("盐值参数：%s,比较结果：%v", salt, salt == "")
 	if salt == "" {
 		return getMd5HexDigest(password)
 	}
-
-	return getMd5HexDigest(getMd5HexDigest(password) + salt)
+	return getMd5HexDigest(getMd5HexDigest(password) + "{" + salt + "}") //兼容旧项目的加盐方式
 }
 
 func (cm *Md5UserSaltCredManager) IsPasswordCorrect(plainPwd string, hashedPwd string, salt string) bool {
 	// For backward-compatibility
 	if salt == "" {
-		if hashedPwd == cm.GetHashedPassword(getMd5HexDigest(plainPwd), salt) {
+		if hashedPwd == cm.GetHashedPassword(plainPwd, salt) {
 			return true
 		}
 	}
-
 	return hashedPwd == cm.GetHashedPassword(plainPwd, salt)
 }
