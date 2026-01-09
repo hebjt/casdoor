@@ -2,7 +2,9 @@ FROM --platform=$BUILDPLATFORM node:22.19.0 AS FRONT
 WORKDIR /web
 
 # 1. 启用 Corepack 并强制指定 Yarn 3.6.4 (2026年推荐稳定版)
-RUN corepack enable && corepack prepare yarn@3.6.4 --activate
+# 优化建议：在 yarn 激活命令后添加 yarn set version 检查，避免镜像缓存导致的 Yarn 版本不一致问题
+RUN corepack enable && corepack prepare yarn@3.6.4 --activate \
+    && yarn --version | grep -q "^3\.6\.4$" || (echo "Yarn 版本不一致，强制设置" && yarn set version 3.6.4)
 
 # 2. 禁用 Cypress 二进制下载
 ENV CYPRESS_INSTALL_BINARY=0
@@ -30,6 +32,11 @@ ENV GOPRIVATE=gitlab.com,github.com
 ENV GO111MODULE=on
 
 COPY . .
+ARG TARGETOS
+ARG TARGETARCH
+# 显式指定输出名称，确保与后面 COPY 路径一致
+RUN GOOS=$TARGETOS GOARCH=$TARGETARCH go build -o server_${TARGETOS}_${TARGETARCH} .
+
 RUN ./build.sh
 # 确保 version_info.txt 生成成功
 RUN go test -v -run TestGetVersionInfo ./util/system_test.go ./util/system.go > version_info.txt
